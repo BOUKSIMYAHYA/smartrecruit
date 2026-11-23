@@ -254,10 +254,13 @@ export class EmailService {
           });
         }
 
-        // Try primary configured domain (e.g. smartrecruit.space), fallback to onboarding@resend.dev
-        let fromAddress = ENV.RESEND_FROM || 'SmartRecruit ATS <recrutement@smartrecruit.space>';
+        // SmartRecruit ATS verified custom domain on smartrecruit.space
+        let fromAddress = 'SmartRecruit ATS - ESTC <recrutement@smartrecruit.space>';
+        if (ENV.RESEND_FROM && !ENV.RESEND_FROM.includes('onboarding@resend.dev')) {
+          fromAddress = ENV.RESEND_FROM;
+        }
         
-        let res = await fetch('https://api.resend.com/emails', {
+        const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
@@ -272,34 +275,13 @@ export class EmailService {
           }),
         });
 
-        let data: any = await res.json().catch(() => ({}));
+        const data: any = await res.json().catch(() => ({}));
 
-        // If domain not yet verified, fallback to test onboarding address
-        if (!res.ok && data?.message?.includes('verify a domain')) {
-          console.warn('[Resend] Domaine non vérifié, bascule sur onboarding@resend.dev');
-          fromAddress = 'SmartRecruit ATS <onboarding@resend.dev>';
-          res = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: fromAddress,
-              to: recipients,
-              subject: payload.subject || 'Notification SmartRecruit ATS',
-              html: payload.htmlBody || `<p>${payload.code || ''}</p>`,
-              ...(attachments.length > 0 ? { attachments } : {}),
-            }),
-          });
-          data = await res.json().catch(() => ({}));
-        }
-
-        if (res.ok && data.id) {
-          console.log(`[Resend] Email délivré avec succès à ${recipients.join(', ')} (id: ${data.id})`);
+        if (res.ok && data?.id) {
+          console.log(`[Resend] Email délivré avec succès à ${recipients.join(', ')} (id: ${data.id}) via ${fromAddress}`);
           return { success: true, output: data.id };
         } else {
-          console.warn(`[Resend] Réponse Resend:`, data);
+          console.warn(`[Resend] Échec envoi (${res.status}):`, data);
         }
       } catch (err: any) {
         console.error('[Resend] Erreur envoi HTTPS:', err?.message);

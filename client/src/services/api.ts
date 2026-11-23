@@ -32,14 +32,26 @@ export class ApiClient {
       headers['Content-Type'] = 'application/json';
     }
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    let res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
     });
 
+    // Auto-retry once after 1.5s on Render cold-start gateway timeouts (502/503/504)
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      res = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    }
+
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
+      if (res.status === 502 || res.status === 503) {
+        throw new Error('Le serveur démarre. Veuillez patienter 5 secondes et réessayer.');
+      }
       throw new Error(data.error || `Erreur serveur (${res.status})`);
     }
 

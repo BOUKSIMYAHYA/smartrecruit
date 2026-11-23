@@ -47,7 +47,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
-        value: SmartRecruit ATS <onboarding@resend.dev>
+        value: SmartRecruit ATS - ESTC <recrutement@smartrecruit.space>
 
   # 2. Frontend Static Site (React Vite)
   - type: web
