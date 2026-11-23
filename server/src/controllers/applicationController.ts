@@ -599,8 +599,8 @@ export class ApplicationController {
         },
       });
 
-      // Send status update notification email if opted in
-      if (notifyCandidate) {
+      // Send status update notification email whenever status changes (unless explicitly opted out)
+      if (notifyCandidate !== false) {
         const candName = `${current.candidateProfile.user.firstName || ''} ${current.candidateProfile.user.lastName || ''}`.trim() || 'Candidat';
         EmailService.sendStatusUpdate(
           current.candidateProfile.user.email,

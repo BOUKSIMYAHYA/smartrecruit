@@ -189,7 +189,7 @@ export class EmailService {
       <div class="top-bar"></div>
       
       <div class="header">
-        <img src="cid:estc_logo" alt="EST Casablanca - Université Hassan II" />
+        <img src="https://smartrecruit.space/ESTC_transparent.png" alt="EST Casablanca - Université Hassan II" style="height: 64px; width: auto; max-width: 240px; object-fit: contain; margin-bottom: 12px; display: inline-block;" />
         <h1 class="inst-title">École Supérieure de Technologie de Casablanca</h1>
         <p class="inst-sub">Université Hassan II de Casablanca &bull; SMARTRECRUIT ATS</p>
       </div>

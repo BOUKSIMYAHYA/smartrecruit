@@ -407,12 +407,12 @@ export class AuthController {
             candidateProfile:
               targetRole === Role.CANDIDATE
                 ? {
-                    create: {
-                      country: 'France',
-                      city: 'Paris',
-                      yearsOfExp: 3,
-                    },
-                  }
+                  create: {
+                    country: 'France',
+                    city: 'Paris',
+                    yearsOfExp: 3,
+                  },
+                }
                 : undefined,
           },
           include: { candidateProfile: true },
