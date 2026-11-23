@@ -233,15 +233,39 @@ export class EmailService {
     attachmentPath?: string;
     attachmentName?: string;
   }): Promise<{ success: boolean; output: string }> {
-    return new Promise((resolve) => {
-      const phpExe = 'C:\\xampp\\php\\php.exe';
-      const scriptPath = path.resolve('c:/xampp/htdocs/projet_ats_saad/php_mailer/send_mail.php');
+    const phpExe = 'C:\\xampp\\php\\php.exe';
+    const scriptPath = path.resolve('c:/xampp/htdocs/projet_ats_saad/php_mailer/send_mail.php');
 
-      if (!fs.existsSync(phpExe) || !fs.existsSync(scriptPath)) {
-        console.warn('[PHPMailer] PHP executable ou script introuvable, utilisation du fallback interne.');
-        return resolve({ success: false, output: 'PHP or script not found' });
+    // On Linux/Render (or when local PHP is absent), deliver directly via Nodemailer & Gmail SMTP
+    if (!fs.existsSync(phpExe) || !fs.existsSync(scriptPath)) {
+      try {
+        const recipients = Array.isArray(payload.to) ? payload.to.join(', ') : payload.to;
+        const mailOptions: any = {
+          from: ENV.SMTP_FROM,
+          to: recipients,
+          subject: payload.subject || 'Notification SmartRecruit ATS',
+          html: payload.htmlBody || `<p>${payload.code || ''}</p>`,
+        };
+
+        if (payload.attachmentPath && fs.existsSync(payload.attachmentPath)) {
+          mailOptions.attachments = [
+            {
+              filename: payload.attachmentName || 'document.pdf',
+              path: payload.attachmentPath,
+            },
+          ];
+        }
+
+        const info = await this.transporter.sendMail(mailOptions);
+        console.log(`[EmailService] Email délivré avec succès via Nodemailer/Gmail à ${recipients}:`, info.messageId);
+        return { success: true, output: info.messageId };
+      } catch (err: any) {
+        console.error('[EmailService] Échec envoi via Nodemailer/Gmail:', err);
+        return { success: false, output: err.message };
       }
+    }
 
+    return new Promise((resolve) => {
       const jsonStr = JSON.stringify(payload);
       const b64 = Buffer.from(jsonStr).toString('base64');
 
