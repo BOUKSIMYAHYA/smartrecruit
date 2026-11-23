@@ -30,6 +30,8 @@ services:
         value: ./storage
       - key: PORT
         value: 10000
+      - key: CLIENT_BASE_URL
+        value: https://smartrecruit.space
 
   # 2. Frontend Static Site (React Vite)
   - type: web
@@ -41,7 +43,7 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://smartrecruit-api.onrender.com/api/*
+        destination: https://smartrecruit-api-3i76.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html

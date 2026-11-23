@@ -34,6 +34,8 @@ app.use(
 // CORS
 const allowedOrigins = [
   ENV.CLIENT_BASE_URL,
+  'https://smartrecruit.space',
+  'https://www.smartrecruit.space',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
