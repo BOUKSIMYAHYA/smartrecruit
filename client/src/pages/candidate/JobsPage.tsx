@@ -10,7 +10,7 @@ import {
   MapPin,
   Briefcase,
   Building2,
-  DollarSign,
+  Banknote,
   Upload,
   FileText,
   CheckCircle,
@@ -287,9 +287,9 @@ export const JobsPage: React.FC = () => {
                       {job.location}
                     </span>
                     {job.salaryMin && (
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3.5 h-3.5 text-blue-600" />
-                        {job.salaryMin.toLocaleString('fr-FR')} - {job.salaryMax ? `${job.salaryMax.toLocaleString('fr-FR')} €` : '€'}
+                      <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                        {job.salaryMin.toLocaleString('fr-FR')} - {job.salaryMax ? `${job.salaryMax.toLocaleString('fr-FR')} DH` : 'DH'}
                       </span>
                     )}
                   </div>

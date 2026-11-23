@@ -19,6 +19,7 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Banknote,
 } from 'lucide-react';
 
 export const HrJobsPage: React.FC = () => {
@@ -45,8 +46,8 @@ export const HrJobsPage: React.FC = () => {
   const [responsibilities, setResponsibilities] = useState('');
   const [requiredExpYears, setRequiredExpYears] = useState(2);
   const [availability, setAvailability] = useState('Immédiate');
-  const [salaryMin, setSalaryMin] = useState<number | undefined>(50000);
-  const [salaryMax, setSalaryMax] = useState<number | undefined>(65000);
+  const [salaryMin, setSalaryMin] = useState<number | undefined>(undefined);
+  const [salaryMax, setSalaryMax] = useState<number | undefined>(undefined);
   const [status, setStatus] = useState<JobStatus>('PUBLISHED');
   const [deadline, setDeadline] = useState('');
   const [requiredSkillsStr, setRequiredSkillsStr] = useState('React, TypeScript, Node.js, PostgreSQL');
@@ -91,8 +92,8 @@ export const HrJobsPage: React.FC = () => {
     setResponsibilities('');
     setRequiredExpYears(2);
     setAvailability('Immédiate');
-    setSalaryMin(50000);
-    setSalaryMax(65000);
+    setSalaryMin(undefined);
+    setSalaryMax(undefined);
     setStatus('PUBLISHED');
     setDeadline('');
     setRequiredSkillsStr('React, TypeScript, Node.js, PostgreSQL');
@@ -310,7 +311,7 @@ export const HrJobsPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
                     <h2 className="text-base font-bold text-gray-900 dark:text-white">{job.title}</h2>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
                       <span>{job.department}</span>
                       <span>•</span>
                       <span>{job.location}</span>
@@ -318,6 +319,15 @@ export const HrJobsPage: React.FC = () => {
                       <span>{job.openings} poste(s)</span>
                       <span>•</span>
                       <span>{job.requiredExpYears} an(s) d'exp.</span>
+                      {job.salaryMin && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                            <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                            {job.salaryMin.toLocaleString('fr-FR')} - {job.salaryMax ? `${job.salaryMax.toLocaleString('fr-FR')} DH` : 'DH'}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -442,6 +452,44 @@ export const HrJobsPage: React.FC = () => {
                 className="w-full p-2.5 bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-xl"
               />
             </div>
+          </div>
+
+          {/* Fourchette / Intervalle de salaire */}
+          <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-navy-700">
+            <div>
+              <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <Banknote className="w-3.5 h-3.5 text-[#004b82]" />
+                <span>Salaire minimum (DH)</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="500"
+                value={salaryMin ?? ''}
+                onChange={(e) => setSalaryMin(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="ex: 8000"
+                className="w-full p-2.5 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-xl font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1.5">
+                <Banknote className="w-3.5 h-3.5 text-[#004b82]" />
+                <span>Salaire maximum (DH)</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="500"
+                value={salaryMax ?? ''}
+                onChange={(e) => setSalaryMax(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="ex: 15000"
+                className="w-full p-2.5 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-xl font-medium"
+              />
+            </div>
+            <p className="col-span-2 text-[11px] text-gray-500">
+              Intervalle salarial proposé pour ce poste (en Dirhams marocains - DH). Laissez vide si confidentiel ou à négocier.
+            </p>
           </div>
 
           <div>
