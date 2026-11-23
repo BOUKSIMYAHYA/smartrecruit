@@ -30,6 +30,14 @@ export class EmailService {
     auth: ENV.SMTP_USER ? { user: ENV.SMTP_USER, pass: ENV.SMTP_PASS } : undefined,
   });
 
+  private static canUseSmtp(): boolean {
+    // Render Free Tier drops outbound packets to port 25/465/587. Never attempt raw SMTP on Linux/Render.
+    if (process.env.RENDER || process.platform !== 'win32') {
+      return false;
+    }
+    return ENV.SMTP_ENABLED;
+  }
+
   /**
    * Log email to PostgreSQL audit trail
    */
@@ -301,8 +309,11 @@ export class EmailService {
     const phpExe = 'C:\\xampp\\php\\php.exe';
     const scriptPath = path.resolve('c:/xampp/htdocs/projet_ats_saad/php_mailer/send_mail.php');
 
-    // On Linux/Render (or when local PHP is absent), deliver directly via Nodemailer & Gmail SMTP
+    // On Linux/Render without PHP, fallback to Nodemailer ONLY if SMTP is not blocked
     if (!fs.existsSync(phpExe) || !fs.existsSync(scriptPath)) {
+      if (!this.canUseSmtp()) {
+        return { success: false, output: 'SMTP blocked on cloud free tier, Resend used' };
+      }
       try {
         const recipients = Array.isArray(payload.to) ? payload.to.join(', ') : payload.to;
         const mailOptions: any = {
@@ -408,7 +419,7 @@ export class EmailService {
 
     try {
       const phpRes = await this.sendWithPhpMailer({ to: email, name, code, subject, htmlBody });
-      if (!phpRes.success && ENV.SMTP_ENABLED) {
+      if (!phpRes.success && this.canUseSmtp()) {
         await this.transporter.sendMail({ from: ENV.SMTP_FROM, to: email, subject, html: htmlBody });
       }
       await this.logEmail(email, subject, htmlBody, false);
@@ -565,7 +576,7 @@ export class EmailService {
 
     try {
       const phpRes = await this.sendWithPhpMailer({ to: email, name, subject, htmlBody });
-      if (!phpRes.success && ENV.SMTP_ENABLED) {
+      if (!phpRes.success && this.canUseSmtp()) {
         await this.transporter.sendMail({ from: ENV.SMTP_FROM, to: email, subject, html: htmlBody });
       }
       await this.logEmail(email, subject, htmlBody, false);
@@ -624,7 +635,7 @@ export class EmailService {
 
     try {
       const phpRes = await this.sendWithPhpMailer({ to: email, name, subject, htmlBody });
-      if (!phpRes.success && ENV.SMTP_ENABLED) {
+      if (!phpRes.success && this.canUseSmtp()) {
         await this.transporter.sendMail({ from: ENV.SMTP_FROM, to: email, subject, html: htmlBody });
       }
       await this.logEmail(email, subject, htmlBody, false);
@@ -693,7 +704,7 @@ export class EmailService {
 
     try {
       const phpRes = await this.sendWithPhpMailer({ to: email, name, subject, htmlBody });
-      if (!phpRes.success && ENV.SMTP_ENABLED) {
+      if (!phpRes.success && this.canUseSmtp()) {
         await this.transporter.sendMail({ from: ENV.SMTP_FROM, to: email, subject, html: htmlBody });
       }
       await this.logEmail(email, subject, htmlBody, false);
