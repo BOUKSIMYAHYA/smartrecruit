@@ -28,9 +28,6 @@ export class EmailService {
     port: ENV.SMTP_PORT,
     secure: ENV.SMTP_PORT === 465,
     auth: ENV.SMTP_USER ? { user: ENV.SMTP_USER, pass: ENV.SMTP_PASS } : undefined,
-    connectionTimeout: 4000,
-    greetingTimeout: 4000,
-    socketTimeout: 5000,
   });
 
   /**
@@ -236,6 +233,35 @@ export class EmailService {
     attachmentPath?: string;
     attachmentName?: string;
   }): Promise<{ success: boolean; output: string }> {
+    // 1. Prioritize Resend HTTPS REST API (Port 443 - Never blocked by Render or cloud firewalls)
+    if (ENV.RESEND_API_KEY) {
+      try {
+        const recipients = Array.isArray(payload.to) ? payload.to : [payload.to];
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: ENV.RESEND_FROM,
+            to: recipients,
+            subject: payload.subject || 'Notification SmartRecruit ATS',
+            html: payload.htmlBody || `<p>${payload.code || ''}</p>`,
+          }),
+        });
+        const data: any = await res.json().catch(() => ({}));
+        if (res.ok && data.id) {
+          console.log(`[Resend] Email délivré avec succès à ${recipients.join(', ')} (id: ${data.id})`);
+          return { success: true, output: data.id };
+        } else {
+          console.warn(`[Resend] Réponse Resend:`, data);
+        }
+      } catch (err: any) {
+        console.error('[Resend] Erreur envoi HTTPS:', err?.message);
+      }
+    }
+
     const phpExe = 'C:\\xampp\\php\\php.exe';
     const scriptPath = path.resolve('c:/xampp/htdocs/projet_ats_saad/php_mailer/send_mail.php');
 

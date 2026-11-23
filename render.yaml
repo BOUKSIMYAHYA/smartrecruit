@@ -44,6 +44,10 @@ services:
         value: SmartRecruit ATS - ESTC <yhykk8899@gmail.com>
       - key: SMTP_ENABLED
         value: "true"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: SmartRecruit ATS <onboarding@resend.dev>
 
   # 2. Frontend Static Site (React Vite)
   - type: web

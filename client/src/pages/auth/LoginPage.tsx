@@ -108,7 +108,6 @@ export const LoginPage: React.FC = () => {
       setVerificationEmail(res.email);
       if (res.devCode) {
         setDevCode(res.devCode);
-        setOtpCode(res.devCode);
       }
       setSuccessMessage(res.message);
       setMode('VERIFY');
@@ -149,7 +148,6 @@ export const LoginPage: React.FC = () => {
       const res = await ApiClient.resendCode(verificationEmail);
       if (res.devCode) {
         setDevCode(res.devCode);
-        setOtpCode(res.devCode);
       }
       setSuccessMessage('Un nouveau code vous a été envoyé par e-mail.');
     } catch (err: any) {
@@ -403,11 +401,6 @@ export const LoginPage: React.FC = () => {
                   Un code à 6 chiffres a été envoyé à :<br />
                   <strong className="text-gray-900">{verificationEmail}</strong>
                 </p>
-                {devCode && (
-                  <div className="p-2.5 bg-[#f0f5fa] border border-[#c2dcf0] rounded-xl text-center text-xs text-[#004b82] font-semibold mt-2">
-                    Code de confirmation : <span className="font-mono tracking-widest text-base font-extrabold text-[#004b82]">{devCode}</span>
-                  </div>
-                )}
               </div>
 
               <div>

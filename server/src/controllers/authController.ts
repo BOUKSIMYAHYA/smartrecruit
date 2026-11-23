@@ -135,10 +135,7 @@ export class AuthController {
           data: { verificationCode: code, verificationExpiresAt: expiresAt },
         });
 
-        // Send in background non-blocking
-        EmailService.sendVerificationCode(user.email, user.firstName || 'Candidat', code).catch((err) => {
-          console.warn('[Auth] Background email send error:', err?.message);
-        });
+        await EmailService.sendVerificationCode(user.email, user.firstName || 'Candidat', code);
 
         res.status(403).json({
           needsVerification: true,
@@ -237,11 +234,9 @@ export class AuthController {
         });
       }
 
-      // Send verification code by email in background (non-blocking)
+      // Send verification code by email
       const candidateDisplayName = `${candidateUser.firstName || ''} ${candidateUser.lastName || ''}`.trim() || 'Candidat';
-      EmailService.sendVerificationCode(emailLower, candidateDisplayName, code).catch((err) => {
-        console.warn('[Auth] Background email send error:', err?.message);
-      });
+      await EmailService.sendVerificationCode(emailLower, candidateDisplayName, code);
 
       await AuditService.log(null, 'CANDIDATE_REGISTERED', 'User', candidateUser.id, {
         email: emailLower,
@@ -359,9 +354,7 @@ export class AuthController {
         data: { verificationCode: code, verificationExpiresAt: expiresAt },
       });
 
-      EmailService.sendVerificationCode(emailLower, user.firstName || 'Candidat', code).catch((err) => {
-        console.warn('[Auth] Background email send error:', err?.message);
-      });
+      await EmailService.sendVerificationCode(emailLower, user.firstName || 'Candidat', code);
 
       res.json({
         success: true,

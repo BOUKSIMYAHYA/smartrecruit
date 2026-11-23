@@ -26,4 +26,6 @@ export const ENV = {
   MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10),
   ALLOWED_MIME_TYPES: (process.env.ALLOWED_MIME_TYPES || 'application/pdf').split(','),
   JWT_SECRET: process.env.JWT_SECRET || 'smartrecruit_ats_jwt_super_secret_production_key_2026_xyz',
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  RESEND_FROM: process.env.RESEND_FROM || 'SmartRecruit ATS <onboarding@resend.dev>',
 };
