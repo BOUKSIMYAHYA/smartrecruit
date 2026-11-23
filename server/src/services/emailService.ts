@@ -28,6 +28,9 @@ export class EmailService {
     port: ENV.SMTP_PORT,
     secure: ENV.SMTP_PORT === 465,
     auth: ENV.SMTP_USER ? { user: ENV.SMTP_USER, pass: ENV.SMTP_PASS } : undefined,
+    connectionTimeout: 4000,
+    greetingTimeout: 4000,
+    socketTimeout: 5000,
   });
 
   /**
