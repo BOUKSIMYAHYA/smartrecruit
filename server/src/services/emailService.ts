@@ -193,17 +193,16 @@ export class EmailService {
 
         ${contentHtml}
 
-        ${
-          ctaText && ctaUrl
-            ? `
+        ${ctaText && ctaUrl
+        ? `
           <div class="cta-container">
             <a href="${ctaUrl}" class="cta-button" target="_blank" rel="noopener noreferrer">
               ${ctaText}
             </a>
           </div>
         `
-            : ''
-        }
+        : ''
+      }
       </div>
 
       <div class="footer">
@@ -237,20 +236,57 @@ export class EmailService {
     if (ENV.RESEND_API_KEY) {
       try {
         const recipients = Array.isArray(payload.to) ? payload.to : [payload.to];
-        const res = await fetch('https://api.resend.com/emails', {
+        const attachments: any[] = [];
+
+        if (payload.attachmentPath && fs.existsSync(payload.attachmentPath)) {
+          const fileBuffer = fs.readFileSync(payload.attachmentPath);
+          attachments.push({
+            filename: payload.attachmentName || 'document.pdf',
+            content: fileBuffer.toString('base64'),
+          });
+        }
+
+        // Try primary configured domain (e.g. smartrecruit.space), fallback to onboarding@resend.dev
+        let fromAddress = ENV.RESEND_FROM || 'SmartRecruit ATS <recrutement@smartrecruit.space>';
+        
+        let res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: ENV.RESEND_FROM,
+            from: fromAddress,
             to: recipients,
             subject: payload.subject || 'Notification SmartRecruit ATS',
             html: payload.htmlBody || `<p>${payload.code || ''}</p>`,
+            ...(attachments.length > 0 ? { attachments } : {}),
           }),
         });
-        const data: any = await res.json().catch(() => ({}));
+
+        let data: any = await res.json().catch(() => ({}));
+
+        // If domain not yet verified, fallback to test onboarding address
+        if (!res.ok && data?.message?.includes('verify a domain')) {
+          console.warn('[Resend] Domaine non vérifié, bascule sur onboarding@resend.dev');
+          fromAddress = 'SmartRecruit ATS <onboarding@resend.dev>';
+          res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromAddress,
+              to: recipients,
+              subject: payload.subject || 'Notification SmartRecruit ATS',
+              html: payload.htmlBody || `<p>${payload.code || ''}</p>`,
+              ...(attachments.length > 0 ? { attachments } : {}),
+            }),
+          });
+          data = await res.json().catch(() => ({}));
+        }
+
         if (res.ok && data.id) {
           console.log(`[Resend] Email délivré avec succès à ${recipients.join(', ')} (id: ${data.id})`);
           return { success: true, output: data.id };
@@ -452,15 +488,14 @@ export class EmailService {
         </tr>
       </table>
 
-      ${
-        payload.coverLetterContent
-          ? `
+      ${payload.coverLetterContent
+        ? `
         <div style="background-color: #f8f9fa; border-left: 4px solid #004b82; padding: 14px; margin: 18px 0; border-radius: 4px;">
           <h4 style="margin: 0 0 6px 0; color: #004b82; font-size: 12px; text-transform: uppercase;">Lettre de motivation du candidat :</h4>
           <p style="margin: 0; font-size: 12px; font-style: italic; color: #4b5563; white-space: pre-wrap; line-height: 1.5;">${payload.coverLetterContent}</p>
         </div>
       `
-          : ''
+        : ''
       }
     `;
 
@@ -564,14 +599,13 @@ export class EmailService {
         <span style="font-size: 17px; font-weight: 800; color: #004b82;">${newStatusFrench}</span>
       </div>
 
-      ${
-        details
-          ? `
+      ${details
+        ? `
         <div style="background-color: #ffffff; border: 1px solid #e2e5e7; padding: 14px 18px; border-radius: 8px; margin: 15px 0;">
           <p style="margin: 0; font-size: 12px; color: #4b5563; line-height: 1.6;">${details}</p>
         </div>
       `
-          : ''
+        : ''
       }
 
       <p style="font-size: 13px; line-height: 1.6; color: #374151;">
@@ -632,16 +666,15 @@ export class EmailService {
         <p style="margin: 0 0 10px 0; font-size: 13px; color: #1f2937;">
           <strong style="color: #004b82;">Lieu / Modalité :</strong> ${meetingLink ? 'Entretien en visioconférence' : 'Campus EST Casablanca, Route d\'El Jadida, Km 7, Oasis'}
         </p>
-        ${
-          meetingLink
-            ? `
+        ${meetingLink
+        ? `
           <p style="margin: 0; font-size: 13px; color: #1f2937;">
             <strong style="color: #004b82;">Lien de visioconférence :</strong>
             <a href="${meetingLink}" style="color: #004b82; font-weight: bold; text-decoration: underline;" target="_blank">${meetingLink}</a>
           </p>
         `
-            : ''
-        }
+        : ''
+      }
       </div>
 
       <p style="font-size: 12px; line-height: 1.6; color: #868889;">
