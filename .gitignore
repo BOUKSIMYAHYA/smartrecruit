@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local PostgreSQL Data directory
+postgres_data/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+server/.env
+client/.env
+
+# Build outputs
+dist/
+**/dist/
+
+# Storage & Uploads
+server/storage/
+server/uploads/
+
+# Logs
+*.log
+pg_service.log
+npm-debug.log*
+
+# System
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
